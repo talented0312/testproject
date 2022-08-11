@@ -1,22 +1,18 @@
-import React from 'react';
-import {
-  createStackNavigator,
-  CardStyleInterpolators,
-} from '@react-navigation/stack';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, Text, Image, Dimensions, Platform } from 'react-native';
+import {
+  CardStyleInterpolators
+} from '@react-navigation/stack';
+import React from 'react';
+import { Dimensions, Image, Platform, Text, View } from 'react-native';
 
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+import { connect } from "react-redux";
 
 // screens
 import {
-  AddComponent,
-  DiscoverComponent,
-  StarsComponent,
-  CartComponent,
-  ProfileComponent
+  AddComponent, CartComponent, DiscoverComponent, ProfileComponent, StarsComponent
 } from '../screens';
-
+import { Badge } from 'react-native-elements';
 
 //Add stack screens
 const AddStack = createNativeStackNavigator();
@@ -136,9 +132,10 @@ const ProfileStackScreens = ({ navigation }) => {
 
 // bottom tab navigator
 const Tab = createMaterialTopTabNavigator();
-const TabNavigation = () => {
+const TabNavigation = (props) => {
   const Window = Dimensions.get('window');
   const IsIos = Platform.OS === 'ios';
+  const carts = props?.app?.carts || []
 
   return (
     <Tab.Navigator
@@ -238,6 +235,14 @@ const TabNavigation = () => {
                 source={require('../assets/logo/cart.png')}
                 style={{ width: 20, height: 20, marginBottom: 5 }}
               />
+              {carts?.length > 0 &&
+                <Badge
+                  status='error'
+                  value={carts.length}
+                  size={'small'}
+                  containerStyle={{ position: 'absolute', top: -8, right: -8 }}
+                />
+              }
             </View>
           ),
         }}
@@ -263,13 +268,13 @@ const TabNavigation = () => {
         name="Profile"
         component={ProfileStackScreens}
       />
-      
+
 
     </Tab.Navigator>
   );
 };
 
-
+const TabNavigationComponent = connect((state) => state, null)(TabNavigation)
 // Sack Navigation
 const Stack = createNativeStackNavigator();
 const AppStackScreens = () => {
@@ -285,7 +290,7 @@ const AppStackScreens = () => {
       <>
         <Stack.Screen
           name="App"
-          component={TabNavigation}
+          component={TabNavigationComponent}
           options={{
             headerShown: false,
           }}
