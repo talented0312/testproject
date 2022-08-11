@@ -1,31 +1,61 @@
-import React, { useState } from 'react';
-import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View, Dimensions } from "react-native";
+import React, { useEffect, useState } from 'react';
+import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View, Dimensions, ActivityIndicator, Touchable } from "react-native";
 import Modal from "react-native-modal";
 import Carousel from 'react-native-snap-carousel';
+import { getData } from "@actions";
+import { connect } from "react-redux";
+import * as reduxActions from "@actions";
+import Video from 'react-native-video';
 
 const Window = Dimensions.get('window');
 
-const ProductItem = (item) => {
+const ProductItem = ({ item }) => {
   return (
-    <Image source={require('../assets/logo/sunglasse.png')} style={{ width: "100%", marginTop: "20%" }} />
+    <Image source={{ uri: item.thumbnail }} blurRadius={10} style={{ width: "100%", height: 200, marginTop: "20%" }} />
   )
 };
 
-const AddComponent = () => {
+const AddComponent = (props) => {
+  const [productdata, setProductData] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [loading, setLoading] = useState(false)
+  const refreshData = async () => {
+    setLoading(true)
+    try {
+      const tmpData = await getData(currentPage);
+      setProductData([...(productdata || []), ...(tmpData.data || [])])
+    } catch (error) {
+      console.log(error)
+    }
+    setLoading(false)
+  }
+  useEffect(() => {
+    refreshData()
+  }, [])
+  useEffect(() => {
+    refreshData()
+  }, [currentPage])
+
   const [modalVisible, setModalVisible] = useState(false);
   let flatListRef = null;
-
-  const selectedProducts = [
-    { name: 'glass', img: 'sunglasse.png' },
-    { name: 'glass', img: 'sunglasse.png' },
-    { name: 'glass', img: 'sunglasse.png' },
-    { name: 'glass', img: 'sunglasse.png' },
-    { name: 'glass', img: 'sunglasse.png' },
-  ]
+  const loadMore = (index) => {
+    setCurrentIndex(index)
+    if (index + 1 >= productdata.length) {
+      setCurrentPage(currentPage + 1)
+    }
+  }
+  const addCart = () => {
+    props.addCart(productdata[currentIndex])
+  }
 
   return (
     <View style={styles.container}>
-      <ImageBackground source={require('../assets/logo/background.png')} resizeMode="cover" style={styles.image}>
+      <Video source={{ uri: "http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4" }}   // Can be a URL or a local file.
+        style={styles.backgroundVideo}
+        resizeMode={'cover'} />
+
+      <View style={styles.image}>
         <View style={styles.itemContainer}>
           <Image source={require('../assets/logo/profile.png')} style={styles.itemImage} />
           <View style={styles.itemText}>
@@ -38,7 +68,7 @@ const AddComponent = () => {
             <Text style={styles.cartBtnTxt}>Cart</Text>
           </TouchableOpacity>
         </View>
-      </ImageBackground>
+      </View>
 
       <Modal
         propagateSwipe={true}
@@ -56,50 +86,76 @@ const AddComponent = () => {
         style={styles.modal}>
         <View style={styles.modalWrapper}>
           <View style={styles.modalContentWrapper}>
+            <TouchableOpacity
+              style={styles.modalBackButton}
+              onPress={() => setModalVisible(false)}>
+              <Image source={require('../assets/logo/close.png')} style={{ resizeMode: 'contain', width: 15, height: 15 }} />
+            </TouchableOpacity>
             <View style={styles.modalContentImageSection}>
-              <TouchableOpacity
-                style={styles.modalBackButton}
-                onPress={() => setModalVisible(false)}>
-                <Image source={require('../assets/logo/close.png')} style={{ resizeMode: 'contain', width: 15, height: 15 }} />
-              </TouchableOpacity>
-
               <Carousel
                 ref={(c) => flatListRef = c}
-                data={selectedProducts}
-                renderItem={(productItem, index) => (
+                data={productdata}
+                renderItem={({ item, index }) => (
                   <ProductItem
                     index={index}
-                    item={productItem}
+                    item={item}
                   />
                 )}
                 sliderWidth={Window.width}
                 itemWidth={Window.width - 60}
                 containerCustomStyle={styles.cardList}
                 inactiveSlideShift={0}
-                // onSnapToItem={(index) => setScrollItem(index)}
-                // scrollInterpolator={scrollInterpolator}
-                // slideInterpolatedStyle={animatedStyles}
-                useScrollView={false}
+                onSnapToItem={loadMore}
+              // scrollInterpolator={scrollInterpolator}
+              // slideInterpolatedStyle={animatedStyles}
               />
-
+              {/* currentIndex */}
             </View>
-            <View style={{display: "flex", flexDirection: "row", justifyContent: "space-between"}}>
-              <Text>
-                Top Notes: Bergamot, Grape Fruit, Apple
-              </Text>
-              <Text>
-              EXCLUSIVE
-              </Text>
+            <View style={{ flex: 1, width: "100%", padding: 20 }}>
+              <View style={{ flexDirection: "row" }}>
+                <Text style={styles.topnotes}>Top Notes: Bergamot, Grape Fruit, Apple</Text>
+                <View style={{ backgroundColor: "#F71E78", paddingVertical: 2, paddingHorizontal: 5, borderRadius: 4 }}>
+                  <Text style={{ color: "#fff", fontSize: 10 }}>EXCLUSIVE</Text>
+                </View>
+              </View>
+              <View style={{ marginVertical: 20, flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#bbb", paddingBottom: 20 }}>
+                <Text style={{ fontSize: 20, color: "#000", fontWeight: '900' }}>{'Royalty Eau de Parfum - \n 100ml'}</Text>
+                <Text style={{ color: "#000", fontSize: 20, fontWeight: '900', marginHorizontal: 20 }}>$140</Text>
+                <Text style={{ color: "#F71E78", fontSize: 20, fontWeight: '900' }}>$99</Text>
+              </View>
+              <View style={{ flexDirection: "row" }}>
+                <Image source={require('../assets/logo/profile.png')} style={{ width: 40, height: 40, borderRadius: 999 }} />
+                <Text style={{ marginHorizontal: 15, flex: 1, fontSize: 18, fontWeight: "900", color: "#000" }}>{'By Maged el Masry\nActors Egypt'}</Text>
+                <View style={{ flexDirection: "row" }}>
+                  <View style={{ width: 20, height: 20, backgroundColor: "#0ff" }} />
+                  <Text>4.9</Text>
+                </View>
+                <Text>33 Reviews</Text>
+              </View>
+              <TouchableOpacity onPress={addCart}>
+                <Text>Add Cart</Text>
+              </TouchableOpacity>
             </View>
           </View>
         </View>
+        {loading &&
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size={'large'} color={'#fff'} />
+          </View>
+        }
       </Modal>
-
     </View>
   )
 };
 
 const styles = StyleSheet.create({
+  backgroundVideo: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    bottom: 0,
+    right: 0,
+  },
   container: {
     flex: 1,
   },
@@ -168,14 +224,11 @@ const styles = StyleSheet.create({
   },
   modalContentImageSection: {
     marginBottom: 10,
-    flexDirection: 'row',
-    flex: 3.5,
-    alignSelf: 'center',
-    position: 'relative'
+    height: 260,
   },
   modalBackButton: {
     top: 20,
-    left: 20,
+    right: 20,
     position: 'absolute',
     zIndex: 2
   },
@@ -188,7 +241,23 @@ const styles = StyleSheet.create({
   },
   cardList: {
 
+  },
+  loadingContainer: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "#00000044",
+    zIndex: 9999,
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  topnotes: {
+    fontWeight: "bold",
+    flex: 1,
   }
 });
 
-export default AddComponent;
+const mapStateToProps = (state) => (state)
+const mapDispatchToProps = { ...reduxActions }
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddComponent);
