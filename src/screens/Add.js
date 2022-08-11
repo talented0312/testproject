@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View, Dimensions, ActivityIndicator, Touchable } from "react-native";
+import { Image, ImageBackground, StyleSheet, Text, TouchableOpacity, View, Dimensions, ActivityIndicator, Touchable,LogBox } from "react-native";
 import Modal from "react-native-modal";
 import Carousel from 'react-native-snap-carousel';
 import { getData } from "@actions";
@@ -11,9 +11,14 @@ const Window = Dimensions.get('window');
 
 const ProductItem = ({ item }) => {
   return (
-    <Image source={{ uri: item.thumbnail }} blurRadius={10} style={{ width: "100%", height: 200, marginTop: "20%" }} />
+    <Image source={{ uri: item.thumbnail }} style={{ width: "100%", height: 200, marginTop: "20%" }} />
   )
 };
+
+LogBox.ignoreLogs([
+  "ViewPropTypes will be removed",
+  "ColorPropType will be removed",
+  ])
 
 const AddComponent = (props) => {
   const [productdata, setProductData] = useState([])
@@ -47,6 +52,10 @@ const AddComponent = (props) => {
   }
   const addCart = () => {
     props.addCart(productdata[currentIndex])
+  }
+
+  const addVideoReview = () => {
+    alert();
   }
 
   return (
@@ -118,7 +127,7 @@ const AddComponent = (props) => {
                   <Text style={{ color: "#fff", fontSize: 10 }}>EXCLUSIVE</Text>
                 </View>
               </View>
-              <View style={{ marginVertical: 20, flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#bbb", paddingBottom: 20 }}>
+              <View style={{ marginVertical: 10, flexDirection: "row", borderBottomWidth: 1, borderBottomColor: "#bbb", paddingBottom: 5 }}>
                 <Text style={{ fontSize: 20, color: "#000", fontWeight: '900' }}>{'Royalty Eau de Parfum - \n 100ml'}</Text>
                 <Text style={{ color: "#000", fontSize: 20, fontWeight: '900', marginHorizontal: 20 }}>$140</Text>
                 <Text style={{ color: "#F71E78", fontSize: 20, fontWeight: '900' }}>$99</Text>
@@ -127,14 +136,35 @@ const AddComponent = (props) => {
                 <Image source={require('../assets/logo/profile.png')} style={{ width: 40, height: 40, borderRadius: 999 }} />
                 <Text style={{ marginHorizontal: 15, flex: 1, fontSize: 18, fontWeight: "900", color: "#000" }}>{'By Maged el Masry\nActors Egypt'}</Text>
                 <View style={{ flexDirection: "row" }}>
-                  <View style={{ width: 20, height: 20, backgroundColor: "#0ff" }} />
-                  <Text>4.9</Text>
+                  <View />
+                  <Image source={require('../assets/logo/starSolid.png')} /><Text>{`4.9`}</Text>
                 </View>
-                <Text>33 Reviews</Text>
               </View>
-              <TouchableOpacity onPress={addCart}>
-                <Text>Add Cart</Text>
-              </TouchableOpacity>
+                <View>
+                  <Text style={{position: "absolute", right: 5, top: -25}}>33 Reviews</Text>
+                </View>
+              <View>
+                <Text style={styles.decTxt}>
+                  Description
+                </Text>
+              </View>
+              <View>
+                <Text style={styles.descSpace}>
+                  {`A perfume that captures hearts..\nDetailed as a piece of arts..\nAlters your mood and reality..\nFeelings speak of its sensuality.. See More`}
+                </Text>
+              </View>
+              <View style={styles.btngroup}>
+                <TouchableOpacity onPress={addVideoReview}>
+                  <View style={styles.addVideoBtn}>
+                    <Text style={{ color: "white", textAlign: "center" }}>{`ADD VIDEO\nREVIEW`}</Text>
+                  </View>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={addCart}>
+                  <View style={styles.addCartBtn}>
+                    <Text style={{ color: "white" }}>{`ADD TO CART`}</Text>
+                  </View>
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
         </View>
@@ -197,7 +227,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#c00000',
     padding: 10,
     borderRadius: 10,
-    textAlign: 'center'
+    textAlign: 'center',
+    paddingHorizontal: 27
   },
   cartBtnTxt: {
     color: 'white',
@@ -254,6 +285,33 @@ const styles = StyleSheet.create({
   topnotes: {
     fontWeight: "bold",
     flex: 1,
+  },
+  addCartBtn: {
+    backgroundColor: "#F71E78",
+    paddingVertical: 15,
+    paddingHorizontal: 30,
+    color: 'white'
+  },
+  addVideoBtn: {
+    backgroundColor: "black",
+    paddingVertical: 6,
+    paddingHorizontal: 30,
+    color: "#fffff",
+  },
+  btngroup: {
+    display: "flex",
+    flexDirection: "row",
+    width: "100%",
+    justifyContent: "space-between",
+  },
+  decTxt: {
+    paddingTop: 5,
+    fontSize: 16,
+    color: "black",
+    fontWeight: "900"
+  },
+  descSpace: {
+    paddingBottom: 10
   }
 });
 
